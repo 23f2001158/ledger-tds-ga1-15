@@ -154,14 +154,16 @@ def answer_question(question):
 
         filtered.append(order)
 
+    
     if asks_refunds:
         filtered = [o for o in filtered if o["status"] == "refunded"]
     elif asks_void:
         filtered = [o for o in filtered if o["status"] == "void"]
-    else:
-        # Revenue is defined by the assignment as paid orders only.
-        if any(w in q for w in ["revenue", "sales", "earned", "income"]):
-            filtered = [o for o in filtered if o["status"] == "paid"]
+    elif "paid" in q or any(
+        w in q for w in ["revenue", "sales", "earned", "income"]
+    ):
+        filtered = [o for o in filtered if o["status"] == "paid"]
+
 
     if not filtered:
         return 0
@@ -186,8 +188,18 @@ def answer_question(question):
         return max(totals, key=totals.get)
 
     # Count questions
+    
+    # Count distinct customers, not order rows
+    if "distinct customer" in q or "unique customer" in q:
+        return len({o["customer"] for o in filtered})
+
+    if "customers" in q and asks_count:
+        return len({o["customer"] for o in filtered})
+
+    # Count questions
     if asks_count:
         return len(filtered)
+
 
     # Refund amount questions
     if asks_refunds:
